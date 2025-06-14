@@ -44,8 +44,7 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         val db = CashFlowDatabase.getDatabase(applicationContext)
-        val deletedInstanceDao = db.deletedInstanceDao()
-        val repository = TransactionRepository(db.transactionDao(), deletedInstanceDao)
+        val repository = TransactionRepository(db.transactionDao())
 
         // ✅ Manual ViewModel creation (no ViewModelProvider)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

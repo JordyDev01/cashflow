@@ -43,8 +43,6 @@ fun CashFlowApp(
 ){
 
     var showDatePicker by remember { mutableStateOf(false) }
-    var startDate by remember { mutableStateOf<LocalDate?>(null) }
-    var endDate by remember { mutableStateOf<LocalDate?>(null) }
     val navController = rememberNavController()
     var expanded by remember { mutableStateOf(false) }
 
@@ -93,6 +91,7 @@ fun CashFlowApp(
                 HomeScreen(viewModel,
                     navController = navController)
             }
+
             }
             composable("add_transaction") { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 AddTransactionScreen(navController, viewModel)

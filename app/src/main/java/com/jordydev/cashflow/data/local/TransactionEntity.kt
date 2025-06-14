@@ -14,5 +14,6 @@ data class TransactionEntity(
     val type: TransactionType,
     val frequency: Frequency,
     val date: String,
-    val isGenerated: Boolean = false
+    val isGenerated: Boolean = false,
+    val nextDueDate: String? = null
 )

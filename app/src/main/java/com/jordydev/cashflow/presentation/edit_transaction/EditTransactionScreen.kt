@@ -59,7 +59,8 @@ fun EditTransactionScreen(
             value = title,
             onValueChange = { title = it },
             label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = false
         )
 
         OutlinedTextField(

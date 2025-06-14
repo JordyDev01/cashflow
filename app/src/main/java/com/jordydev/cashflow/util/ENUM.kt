@@ -12,7 +12,7 @@ enum class Frequency {
 enum class TransactionType {
     INCOME, EXPENSE;
 
-    fun displayName(): String {
-        return name.lowercase().replaceFirstChar { it.uppercase() }
-    }
+//    fun displayName(): String {
+//        return name.lowercase().replaceFirstChar { it.uppercase() }
+//    }
 }

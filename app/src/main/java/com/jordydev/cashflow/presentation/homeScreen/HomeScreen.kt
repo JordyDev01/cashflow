@@ -12,6 +12,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,7 +84,8 @@ fun HomeScreen(
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier
+        .padding(16.dp)) {
 
         // Header Info
         Text("Balance", style = MaterialTheme.typography.headlineSmall)
@@ -103,9 +105,7 @@ fun HomeScreen(
                 Text("$${String.format("%.2f", animatedExpenses)}", color = Color.Red)
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         // Toggle for Future Transactions
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -136,7 +136,7 @@ fun HomeScreen(
                 label = "Filter by Frequency",
                 options = frequencies.map {
                     it.name.lowercase().replaceFirstChar(Char::uppercase)
-                }.toMutableList().apply { add(0, "All") },
+                }.toMutableList(),
                 selected = selectedFrequency?.name?.lowercase()?.replaceFirstChar(Char::uppercase)
                     ?: "All"
             ) { selected ->
@@ -178,29 +178,32 @@ fun HomeScreen(
                 }
             )
         }
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            // Transaction List
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = 80.dp),
+                contentPadding = PaddingValues(bottom = 80.dp),
+            ) {
+                itemsIndexed(transactions, key = { _, txn -> txn.id }) { index, txn ->
+                    val visible = remember(index) { mutableStateOf(false) }
 
-        // Transaction List
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(bottom = 80.dp)
-        ) {
-            itemsIndexed(transactions, key = { _, txn -> txn.id }) { index, txn ->
-                val visible = remember(index) { mutableStateOf(false) }
-
-                LaunchedEffect(index) {
-                    kotlinx.coroutines.delay(index * 70L)
-                    visible.value = true
-                }
+                    LaunchedEffect(index) {
+                        kotlinx.coroutines.delay(index * 70L)
+                        visible.value = true
+                    }
                     AnimatedVisibility(
                         modifier = Modifier
                             .fillMaxWidth(),
                         visible = visible.value,
                         enter = slideInVertically(
                             initialOffsetY = { it },
-                            animationSpec = tween(durationMillis = 300)
-                        ) + fadeIn(animationSpec = tween(durationMillis = 300))
+                            animationSpec = tween(durationMillis = 150)
+                        ) + fadeIn(animationSpec = tween(durationMillis = 150))
                     ) {
                         TransactionItem(
                             txn,
@@ -214,9 +217,10 @@ fun HomeScreen(
                         )
                     }
 
+                }
             }
         }
-    }
+//    }
 }
 
 

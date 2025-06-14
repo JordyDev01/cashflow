@@ -15,7 +15,7 @@ import java.time.LocalDate
 @RequiresApi(Build.VERSION_CODES.O)
 class TransactionRepository(
     private val dao: TransactionDao,
-    private val deletedInstanceDao: DeletedInstanceDao
+//    private val deletedInstanceDao: DeletedInstanceDao
 ) {
     fun getFutureTransactions(): Flow<List<TransactionEntity>> {
         val today = LocalDate.now().toString()
@@ -24,7 +24,7 @@ class TransactionRepository(
 
 
     suspend fun findExactTransaction(date: String, title: String, frequency: Frequency): TransactionEntity? {
-        return dao.findExactTransaction(date, title, frequency.name)
+        return dao.findExactTransaction(date, title, frequency)
     }
 
     // Filtered by date range
@@ -38,12 +38,12 @@ class TransactionRepository(
     }
 
     suspend fun getLatestGeneratedTransaction(title: String, frequency: Frequency): TransactionEntity? {
-        return dao.getLatestGeneratedTransaction(title, frequency.name)
+        return dao.getLatestGeneratedTransaction(title, frequency)
     }
-
-    suspend fun getLatestTransactionByTitleAndFrequency(title: String, frequency: Frequency): TransactionEntity? {
-        return dao.getLatestByTitleAndFrequency(title, frequency.name)
-    }
+//
+//    suspend fun getLatestTransactionByTitleAndFrequency(title: String, frequency: Frequency): TransactionEntity? {
+//        return dao.getLatestByTitleAndFrequency(title, frequency.name)
+//    }
 
     suspend fun deleteTransaction(transaction: TransactionEntity) {
         dao.deleteTransaction(transaction)
@@ -58,15 +58,15 @@ class TransactionRepository(
         dao.updateTransaction(transaction)
     }
 
-    suspend fun isDeleted(title: String, date: String): Boolean {
-        return deletedInstanceDao.exists(title, date)
-    }
-
-    suspend fun markAsDeleted(title: String, date: String) {
-        deletedInstanceDao.insert(DeletedInstance(
-            title = title,
-            date = date
-        ))
-    }
+//    suspend fun isDeleted(title: String, date: String): Boolean {
+//        return deletedInstanceDao.exists(title, date)
+//    }
+//
+//    suspend fun markAsDeleted(title: String, date: String) {
+//        deletedInstanceDao.insert(DeletedInstance(
+//            title = title,
+//            date = date
+//        ))
+//    }
 }
 

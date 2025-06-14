@@ -1,4 +1,6 @@
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +39,9 @@ import androidx.compose.ui.unit.dp
 import com.jordydev.cashflow.data.local.TransactionEntity
 import com.jordydev.cashflow.util.TransactionType
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TransactionItem(
@@ -45,6 +49,7 @@ fun TransactionItem(
     onEdit: (TransactionEntity) -> Unit,
     onDelete: (TransactionEntity) -> Unit
 ) {
+    val isFuture = txn.isGenerated && txn.date > LocalDate.now().toString()
 
     var displayedAmount by remember { mutableFloatStateOf(0f) }
 
@@ -114,7 +119,10 @@ fun TransactionItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                colors = CardDefaults.cardColors(containerColor =
+                    if (isFuture) MaterialTheme.colorScheme.secondaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
                 shape = MaterialTheme.shapes.medium
             ) {
                 Row(

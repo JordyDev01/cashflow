@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,13 +28,6 @@ class TransactionViewModel (
     private val repository: TransactionRepository
 ) : ViewModel() {
 
-    init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            viewModelScope.launch {
-                generateRecurringTransactionsIfNeeded()
-            }
-        }
-    }
 
     private val _transactionState = MutableStateFlow<List<TransactionEntity>>(emptyList())
     val transactionState: StateFlow<List<TransactionEntity>> = _transactionState
@@ -46,7 +40,12 @@ class TransactionViewModel (
 
     fun toggleShowFutureExpenses(show: Boolean) {
         _showFutureExpenses.value = show
-        loadRelevantTransactions() // reload based on toggle
+
+        if (show) {
+            generateFutureRecurringTransactions()
+        }
+
+        loadRelevantTransactions()
     }
 
     val totalIncome: StateFlow<Double> = transactionState.map { txns ->
@@ -66,50 +65,54 @@ class TransactionViewModel (
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
 
 
-    private suspend fun generateRecurringTransactionsIfNeeded() {
-        val today = LocalDate.now()
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun generateFutureRecurringTransactions(daysAhead: Long = 30) {
+        viewModelScope.launch {
+            val today = LocalDate.now()
+            val futureLimit = today.plusDays(daysAhead)
 
-        repository.getRecurringTransactions().collect { recurringTransactions ->
-            recurringTransactions.forEach { txn ->
-                val originalTxn = txn.copy()
-                val latestGeneratedTxn = repository.getLatestGeneratedTransaction(txn.title, txn.frequency)
+            repository.getRecurringTransactions().collectLatest { recurringTransactions ->
+                recurringTransactions.forEach { txn ->
+                    val baseDate = repository.getLatestGeneratedTransaction(txn.title, txn.frequency)
+                        ?.let { LocalDate.parse(it.date) }
+                        ?: LocalDate.parse(txn.date)
 
-                val baseDate = latestGeneratedTxn?.let { LocalDate.parse(it.date) }
-                    ?: LocalDate.parse(txn.date)
-
-                val increment: (LocalDate) -> LocalDate = when (txn.frequency) {
-                    Frequency.DAILY -> { d -> d.plusDays(1) }
-                    Frequency.WEEKLY -> { d -> d.plusWeeks(1) }
-                    Frequency.BIWEEKLY -> { d -> d.plusWeeks(2) }
-                    Frequency.MONTHLY -> { d -> d.plusMonths(1) }
-//                    null -> return@forEach
-                    else -> return@forEach
-                }
-
-                Log.d("RecurringCheck", "Checking txn: ${txn.title} from $baseDate")
-
-                var current = baseDate
-                var count = 0
-                val maxIterations = 1000
-
-                while (current <= today && count < maxIterations) {
-                    val exists = repository.findExactTransaction(current.toString(), txn.title, txn.frequency)
-                    if (exists == null) {
-                        val newTxn = originalTxn.copy(
-                            id = 0,
-                            date = current.toString(),
-                            isGenerated = true
-                        )
-                        repository.insertTransaction(newTxn)
-                        Log.d("NewTxn", "Generated ${newTxn.title} on ${newTxn.date}")
+                    val increment: (LocalDate) -> LocalDate = when (txn.frequency) {
+                        Frequency.DAILY -> { d -> d.plusDays(1) }
+                        Frequency.WEEKLY -> { d -> d.plusWeeks(1) }
+                        Frequency.BIWEEKLY -> { d -> d.plusWeeks(2) }
+                        Frequency.MONTHLY -> { d -> d.plusMonths(1) }
+                        else -> return@forEach
                     }
 
-                    current = increment(current)
-                    count++
+                    var current = increment(baseDate)
+                    var count = 0
+                    val maxIterations = 1000
+
+                    while (current <= futureLimit && count < maxIterations) {
+                        val exists = repository.findExactTransaction(
+                            date = current.toString(),
+                            title = txn.title,
+                            frequency = txn.frequency
+                        )
+                        if (exists == null) {
+                            val newTxn = txn.copy(
+                                id = 0,
+                                date = current.toString(),
+                                isGenerated = true
+                            )
+                            repository.insertTransaction(newTxn)
+                            Log.d("FutureTxn", "Pre-generated ${newTxn.title} for ${newTxn.date}")
+                        }
+
+                        current = increment(current)
+                        count++
+                    }
                 }
             }
         }
     }
+
 
 
     fun loadRelevantTransactions(rangeLabel: String? = null, frequency: Frequency? = null) {

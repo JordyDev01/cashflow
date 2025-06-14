@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.jordydev.cashflow.util.Frequency
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,15 +28,17 @@ interface TransactionDao {
     suspend fun findExactTransaction(
         date: String,
         title: String,
-        frequency: String
+        frequency: Frequency
     ): TransactionEntity?
 
+//    @Query("SELECT * FROM transactions ORDER BY date DESC")
+//    suspend fun getAllTransactions(): List<TransactionEntity>
+
     @Query("SELECT * FROM transactions WHERE title = :title AND frequency = :frequency AND isGenerated = 1 ORDER BY date DESC LIMIT 1")
-    suspend fun getLatestGeneratedTransaction(title: String, frequency: String): TransactionEntity?
+    suspend fun getLatestGeneratedTransaction(title: String, frequency: Frequency): TransactionEntity?
 
     @Query("SELECT * FROM transactions WHERE title = :title AND frequency = :frequency ORDER BY date")
-    suspend fun getLatestByTitleAndFrequency(title: String, frequency: String): TransactionEntity?
-
+    suspend fun getLatestByTitleAndFrequency(title: String, frequency: Frequency): TransactionEntity?
 
     @Query("SELECT * FROM transactions WHERE date <= :today ORDER BY date DESC")
     fun getPastTransactions(today: String): Flow<List<TransactionEntity>>

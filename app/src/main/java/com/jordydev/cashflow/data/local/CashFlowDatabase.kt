@@ -5,11 +5,13 @@ import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
-@Database(entities = [TransactionEntity::class, DeletedInstance::class], version = 4, exportSchema = false )
+@Database(entities = [TransactionEntity::class, DeletedInstance::class], version = 5, exportSchema = false )
+@TypeConverters(Converters ::class)
 abstract class CashFlowDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
-    abstract fun deletedInstanceDao(): DeletedInstanceDao
+
 
     companion object {
         @Volatile private var INSTANCE: CashFlowDatabase? = null
@@ -21,7 +23,7 @@ abstract class CashFlowDatabase : RoomDatabase() {
                     CashFlowDatabase::class.java,
                     "cashflow_db"
                 )
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(AppMigrations.MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance
