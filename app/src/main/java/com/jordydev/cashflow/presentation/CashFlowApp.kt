@@ -25,12 +25,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.jordydev.cashflow.data.local.TransactionEntity
 import com.jordydev.cashflow.presentation.addtransaction.AddTransactionScreen
 import com.jordydev.cashflow.presentation.edit_transaction.EditTransactionScreen
 import com.jordydev.cashflow.presentation.homeScreen.HomeScreen
 import com.jordydev.cashflow.presentation.homeScreen.TransactionViewModel
-import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)

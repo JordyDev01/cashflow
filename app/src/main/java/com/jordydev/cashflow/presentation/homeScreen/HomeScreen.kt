@@ -196,15 +196,6 @@ fun HomeScreen(
                         kotlinx.coroutines.delay(index * 70L)
                         visible.value = true
                     }
-                    AnimatedVisibility(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        visible = visible.value,
-                        enter = slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec = tween(durationMillis = 150)
-                        ) + fadeIn(animationSpec = tween(durationMillis = 150))
-                    ) {
                         TransactionItem(
                             txn,
                             onEdit = {
@@ -215,7 +206,7 @@ fun HomeScreen(
                                 showDeleteDialog = true
                             }
                         )
-                    }
+
 
                 }
             }

@@ -20,16 +20,19 @@ interface TransactionDao {
     @Delete
     suspend fun deleteTransaction(transaction: TransactionEntity)
 
-    @Query("""
+    @Query(
+        """
     SELECT * FROM transactions 
     WHERE date = :date AND title = :title AND frequency = :frequency 
+    AND isDeletedByUser = 0
     LIMIT 1
-""")
-    suspend fun findExactTransaction(
+"""
+    )
+     fun findExactTransaction(
         date: String,
         title: String,
         frequency: Frequency
-    ): TransactionEntity?
+    ): Flow<List<TransactionEntity?>>
 
 //    @Query("SELECT * FROM transactions ORDER BY date DESC")
 //    suspend fun getAllTransactions(): List<TransactionEntity>
@@ -43,7 +46,7 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE date <= :today ORDER BY date DESC")
     fun getPastTransactions(today: String): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions WHERE date > :today ORDER BY date ASC")
+    @Query("SELECT * FROM transactions WHERE date > :today and isDeletedByUser = 0 ORDER BY date ASC")
     fun getFutureTransactions(today: String): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions WHERE date = :date")
@@ -52,9 +55,22 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE date >= :startDate ORDER BY date DESC")
     fun getTransactionsFrom(startDate: String): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions WHERE date BETWEEN :startDate AND :endDate")
+    @Query("SELECT * FROM transactions WHERE date BETWEEN :startDate AND :endDate and isDeletedByUser = 0 ORDER BY date DESC")
      fun getTransactionsForRange(startDate: String, endDate: String): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions WHERE frequency != 'ONCE'")
      fun getRecurringTransactions(): Flow<List<TransactionEntity>>
+
+    @Query("""
+  SELECT * FROM transactions
+  WHERE date = :date
+    AND title = :title
+    AND frequency = :frequency
+  LIMIT 1
+""")
+    suspend fun findAnyExactTransaction(
+        date: String,
+        title: String,
+        frequency: Frequency
+    ): TransactionEntity?
 }

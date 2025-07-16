@@ -4,8 +4,6 @@ package com.jordydev.cashflow.data.repository
 import android.os.Build
 import androidx.annotation.RequiresApi
 
-import com.jordydev.cashflow.data.local.DeletedInstance
-import com.jordydev.cashflow.data.local.DeletedInstanceDao
 import com.jordydev.cashflow.data.local.TransactionDao
 import com.jordydev.cashflow.data.local.TransactionEntity
 import com.jordydev.cashflow.util.Frequency
@@ -22,8 +20,14 @@ class TransactionRepository(
         return dao.getFutureTransactions(today)
     }
 
+    suspend fun findAnyExactTransaction(
+        date: String,
+        title: String,
+        frequency: Frequency
+    ) = dao.findAnyExactTransaction(date, title, frequency)
 
-    suspend fun findExactTransaction(date: String, title: String, frequency: Frequency): TransactionEntity? {
+
+     fun findExactTransaction(date: String, title: String, frequency: Frequency): Flow<List<TransactionEntity?>> {
         return dao.findExactTransaction(date, title, frequency)
     }
 

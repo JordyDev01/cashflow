@@ -7,7 +7,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [TransactionEntity::class, DeletedInstance::class], version = 5, exportSchema = false )
+@Database(entities = [TransactionEntity::class], version = 6, exportSchema = false )
 @TypeConverters(Converters ::class)
 abstract class CashFlowDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -23,7 +23,8 @@ abstract class CashFlowDatabase : RoomDatabase() {
                     CashFlowDatabase::class.java,
                     "cashflow_db"
                 )
-                    .addMigrations(AppMigrations.MIGRATION_4_5)
+//                    .addMigrations(*AppMigrations.all)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
