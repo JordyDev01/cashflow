@@ -72,14 +72,12 @@ fun HomeScreen(
         animationSpec = tween(durationMillis = 600)
     )
 
-    var showFutureTransactions by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var transactionToDelete by remember { mutableStateOf<TransactionEntity?>(null) }
 
-    LaunchedEffect(showFutureTransactions, selectedDateRange, selectedFrequency) {
-        viewModel.toggleShowFutureExpenses(showFutureTransactions)
+    LaunchedEffect(selectedDateRange, selectedFrequency) {
         viewModel.loadRelevantTransactions(
-            rangeLabel = if (!showFutureTransactions) selectedDateRange else null,
+            rangeLabel = selectedDateRange,
             frequency = selectedFrequency
         )
     }
@@ -93,7 +91,7 @@ fun HomeScreen(
             "$${String.format("%.2f", animatedBalance)}",
             style = MaterialTheme.typography.headlineMedium
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Column {
@@ -105,24 +103,23 @@ fun HomeScreen(
                 Text("$${String.format("%.2f", animatedExpenses)}", color = Color.Red)
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         // Toggle for Future Transactions
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 4.dp)
         ) {
-            Switch(
-                checked = showFutureTransactions,
-                onCheckedChange = { showFutureTransactions = it }
-            )
-            Text("Show Future Transactions", modifier = Modifier.padding(start = 8.dp))
+//            Switch(
+//                checked = showFutureTransactions,
+//                onCheckedChange = { showFutureTransactions = it }
+//            )
+//            Text("Show Future Transactions", modifier = Modifier.padding(start = 8.dp))
         }
 
         // Dropdown Filters
-        if (!showFutureTransactions) {
             DropdownSelector(
                 label = "Filter by Date Range",
                 options = dateRanges,
@@ -144,7 +141,6 @@ fun HomeScreen(
                 else Frequency.entries.firstOrNull { it.name.equals(selected, ignoreCase = true) }
                 viewModel.setSelectedFrequency(selectedFrequency)
             }
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
         Text("Transactions", style = MaterialTheme.typography.titleMedium)
@@ -187,7 +183,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .padding(bottom = 80.dp),
-                contentPadding = PaddingValues(bottom = 80.dp),
+                contentPadding = PaddingValues(bottom = 60.dp),
             ) {
                 itemsIndexed(transactions, key = { _, txn -> txn.id }) { index, txn ->
                     val visible = remember(index) { mutableStateOf(false) }

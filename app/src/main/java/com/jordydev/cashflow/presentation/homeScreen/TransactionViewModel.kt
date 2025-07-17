@@ -35,15 +35,15 @@ class TransactionViewModel(
     /**
      * Toggle between past and future transactions, resetting frequency filter.
      */
-    fun toggleShowFutureExpenses(show: Boolean) {
-        _showFutureExpenses.value = show
-        // Clear any frequency filter to show all frequencies
-        lastFrequency = null
-        if (show) {
-            generateFutureRecurringTransactions()
-        }
-        loadRelevantTransactions()
-    }
+//    fun toggleShowFutureExpenses(show: Boolean) {
+//        _showFutureExpenses.value = show
+//        // Clear any frequency filter to show all frequencies
+//        lastFrequency = null
+//        if (show) {
+//            generateFutureRecurringTransactions()
+//        }
+//        loadRelevantTransactions()
+//    }
 
     val totalIncome: StateFlow<Double> = transactionState.map { txns ->
         txns.filter { it.type.name == "INCOME" }
@@ -63,56 +63,56 @@ class TransactionViewModel(
     /**
      * Pre-generate future recurring transactions up to [daysAhead], skipping any existing or soft-deleted ones.
      */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun generateFutureRecurringTransactions(daysAhead: Long = 30) {
-        viewModelScope.launch {
-            val today = LocalDate.now()
-            val futureLimit = today.plusDays(daysAhead)
-
-            repository.getRecurringTransactions().collectLatest { recurringList ->
-                recurringList.forEach { template ->
-                    val baseDate = repository.getLatestGeneratedTransaction(
-                        template.title, template.frequency
-                    )?.let { LocalDate.parse(it.date) }
-                        ?: LocalDate.parse(template.date)
-
-                    // Increment function based on frequency
-                    val increment: (LocalDate) -> LocalDate = when (template.frequency) {
-                        Frequency.DAILY    -> { d -> d.plusDays(1) }
-                        Frequency.WEEKLY   -> { d -> d.plusWeeks(1) }
-                        Frequency.BIWEEKLY -> { d -> d.plusWeeks(2) }
-                        Frequency.MONTHLY  -> { d -> d.plusMonths(1) }
-                        else               -> return@forEach
-                    }
-
-                    var current = increment(baseDate)
-                    var count = 0
-                    val maxIterations = 1000
-
-                    while (current <= futureLimit && count < maxIterations) {
-                        // Check any existing (including soft-deleted)
-                        val existing = repository.findAnyExactTransaction(
-                            date      = current.toString(),
-                            title     = template.title,
-                            frequency = template.frequency
-                        )
-                        if (existing == null) {
-                            repository.insertTransaction(
-                                template.copy(
-                                    id = 0,
-                                    date = current.toString(),
-                                    isGenerated = true
-                                )
-                            )
-                            Log.d("FutureTxn", "Generated ${template.title} for ${current}")
-                        }
-                        current = increment(current)
-                        count++
-                    }
-                }
-            }
-        }
-    }
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    fun generateFutureRecurringTransactions(daysAhead: Long = 30) {
+//        viewModelScope.launch {
+//            val today = LocalDate.now()
+//            val futureLimit = today.plusDays(daysAhead)
+//
+//            repository.getRecurringTransactions().collectLatest { recurringList ->
+//                recurringList.forEach { template ->
+//                    val baseDate = repository.getLatestGeneratedTransaction(
+//                        template.title, template.frequency
+//                    )?.let { LocalDate.parse(it.date) }
+//                        ?: LocalDate.parse(template.date)
+//
+//                    // Increment function based on frequency
+//                    val increment: (LocalDate) -> LocalDate = when (template.frequency) {
+//                        Frequency.DAILY    -> { d -> d.plusDays(1) }
+//                        Frequency.WEEKLY   -> { d -> d.plusWeeks(1) }
+//                        Frequency.BIWEEKLY -> { d -> d.plusWeeks(2) }
+//                        Frequency.MONTHLY  -> { d -> d.plusMonths(1) }
+//                        else               -> return@forEach
+//                    }
+//
+//                    var current = increment(baseDate)
+//                    var count = 0
+//                    val maxIterations = 1000
+//
+//                    while (current <= futureLimit && count < maxIterations) {
+//                        // Check any existing (including soft-deleted)
+//                        val existing = repository.findAnyExactTransaction(
+//                            date      = current.toString(),
+//                            title     = template.title,
+//                            frequency = template.frequency
+//                        )
+//                        if (existing == null) {
+//                            repository.insertTransaction(
+//                                template.copy(
+//                                    id = 0,
+//                                    date = current.toString(),
+//                                    isGenerated = true
+//                                )
+//                            )
+//                            Log.d("FutureTxn", "Generated ${template.title} for ${current}")
+//                        }
+//                        current = increment(current)
+//                        count++
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Load either past or future transactions with optional range and frequency filtering.
@@ -146,6 +146,7 @@ class TransactionViewModel(
 
     fun addTransaction(txn: TransactionEntity) = viewModelScope.launch {
         repository.insertTransaction(txn)
+        loadRelevantTransactions()
     }
 
     fun deleteTransaction(txn: TransactionEntity) = viewModelScope.launch {
@@ -159,6 +160,7 @@ class TransactionViewModel(
 
     fun updateTransaction(txn: TransactionEntity) = viewModelScope.launch {
         repository.updateTransaction(txn)
+        loadRelevantTransactions()
     }
 
     private fun filterByFrequency(list: List<TransactionEntity>): List<TransactionEntity> =
